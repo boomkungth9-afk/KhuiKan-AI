@@ -1,92 +1,170 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-    <title>KhuiKan - Login & Daily Coins</title>
+    <title>KhuiKan - Google Login & AI</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: flex; justify-content: center; padding: 20px; }
-        #login-screen { width: 350px; background: #1e1e1e; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        #app-container { display: none; width: 450px; background: #1e1e1e; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .coin-status { background: #f1c40f; color: black; padding: 8px 15px; border-radius: 15px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        #messages { height: 300px; overflow-y: auto; background: #2d2d2d; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        input, button { padding: 12px; border-radius: 10px; border: none; margin-top: 10px; font-size: 1em; }
-        input { width: 100%; box-sizing: border-box; background: #333; color: white; }
-        button { background: #f1c40f; color: black; font-weight: bold; cursor: pointer; width: 100%; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        .checkin-btn { background: #2ecc71; width: auto; padding: 5px 10px; font-size: 0.8em; }
+        :root { --main-color: #f1c40f; --bg-dark: #121212; }
+        body { font-family: 'Kanit', sans-serif; background: var(--bg-dark); color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        #login-card { background: #1e1e1e; padding: 40px; border-radius: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.7); width: 320px; }
+        #app-container { display: none; width: 100%; max-width: 500px; background: #1e1e1e; height: 90vh; border-radius: 20px; flex-direction: column; overflow: hidden; }
+        .header { background: #2d2d2d; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main-color); }
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .input-box { padding: 15px; display: flex; gap: 10px; background: #2d2d2d; }
+        input { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #3d3d3d; color: white; outline: none; }
+        button { background: var(--main-color); color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .google-btn { background: white; color: #444; width: 100%; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .coin-tag { color: var(--main-color); font-weight: bold; }
+        .msg { padding: 10px; border-radius: 10px; max-width: 80%; }
+        .user-msg { align-self: flex-end; background: #3d3d3d; }
+        .ai-msg { align-self: flex-start; background: #2d2d2d; border-left: 4px solid var(--main-color); }
     </style>
 </head>
 <body>
-    <div id="login-screen">
-        <h2>KhuiKan AI 💬</h2>
-        <p>กรุณาตั้งชื่อเพื่อเข้าใช้งาน</p>
-        <input type="text" id="usernameInput" placeholder="ใส่ชื่อของคุณที่นี่...">
-        <button onclick="login()">เข้าสู่ระบบ</button>
+
+    <div id="login-card">
+        <h1 style="color: var(--main-color);">KhuiKan AI 💬</h1>
+        <p>เข้าสู่ระบบเพื่อคุยกับ AI และสะสมเหรียญ</p>
+        <button class="google-btn" onclick="loginWithGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="20"> ล็อกอินด้วย Google
+        </button>
     </div>
 
     <div id="app-container">
-        <div class="coin-status">
-            <span>🪙 <span id="coinCount">0</span> Coins</span>
-            <button class="checkin-btn" onclick="checkIn()">รับเหรียญรายวัน +100</button>
+        <div class="header">
+            <div><b id="userName">KhuiKan AI</b></div>
+            <div class="coin-tag">🪙 <span id="coinCount">0</span></div>
+            <button onclick="checkIn()" style="padding: 5px 10px; font-size: 0.8em;">รับ 100</button>
         </div>
         <div id="messages"></div>
-        <input type="text" id="userInput" placeholder="พิมพ์ข้อความ... (ใช้ 1 เหรียญ)">
-        <button onclick="sendMessage()" id="sendBtn">ส่งข้อความ</button>
+        <div class="input-box">
+            <input type="text" id="userInput" placeholder="พิมพ์ข้อความที่นี่..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">ส่ง</button>
+        </div>
     </div>
 
     <script>
-        let currentUser = "";
+        // รวม Firebase Config ของคุณแล้วเจ้าคะ!
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUuxmf6LjRCinleq2-NWTuZwS7J2MnK_k",
+            authDomain: "khuikan-ai.firebaseapp.com",
+            projectId: "khuikan-ai",
+            storageBucket: "khuikan-ai.firebasestorage.app",
+            messagingSenderId: "236305769433",
+            appId: "1:236305769433:web:8618ca8d4db719dda2efc8",
+            measurementId: "G-ETDM24C0V1"
+        };
 
-        async function login() {
-            const user = document.getElementById('usernameInput').value;
-            if(!user) return alert("กรุณาใส่ชื่อนะเจ้าคะ!");
-            currentUser = user;
+        // เริ่มต้นการทำงาน Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ username: user })
-            });
-            const data = await response.json();
-            document.getElementById('coinCount').innerText = data.coins;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app-container').style.display = 'block';
+        let currentUser = null;
+
+        // ระบบ Login ด้วย Google
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then(async (result) => {
+                currentUser = result.user;
+                document.getElementById('userName').innerText = currentUser.displayName;
+                await setupUserDatabase();
+                showApp();
+            }).catch(err => alert("เกิดข้อผิดพลาด: " + err.message));
         }
 
-        async function checkIn() {
-            const response = await fetch('/daily-checkin', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ username: currentUser })
-            });
-            const data = await response.json();
-            alert(data.message);
-            if(data.success) {
-                document.getElementById('coinCount').innerText = data.coins;
+        // ตั้งค่าฐานข้อมูลผู้ใช้ (ถ้ายังไม่มีให้สร้างใหม่)
+        async function setupUserDatabase() {
+            const userRef = db.collection("users").doc(currentUser.uid);
+            const doc = await userRef.get();
+            if (!doc.exists()) {
+                await userRef.set({ 
+                    name: currentUser.displayName,
+                    coins: 100, // เริ่มต้นให้ 100 เหรียญเลยเจ้าคะ!
+                    lastCheckIn: "" 
+                });
             }
+            updateCoinDisplay();
         }
 
+        // อัปเดตตัวเลขเหรียญบนหน้าจอ
+        async function updateCoinDisplay() {
+            const userRef = db.collection("users").doc(currentUser.uid);
+            userRef.onSnapshot((doc) => {
+                if (doc.exists()) {
+                    document.getElementById('coinCount').innerText = doc.data().coins;
+                }
+            });
+        }
+
+        // ระบบเช็คอินรับเหรียญรายวัน
+        async function checkIn() {
+            const now = new Date().toDateString();
+            const userRef = db.collection("users").doc(currentUser.uid);
+            const doc = await userRef.get();
+            
+            if (doc.data().lastCheckIn === now) {
+                return alert("วันนี้คุณได้รับเหรียญไปแล้วนะเจ้าคะ!");
+            }
+            
+            await userRef.update({ 
+                coins: doc.data().coins + 100, 
+                lastCheckIn: now 
+            });
+            alert("เช็คอินสำเร็จ! ได้รับ 100 เหรียญเจ้าคะ");
+        }
+
+        function showApp() {
+            document.getElementById('login-card').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+        }
+
+        // ระบบส่งข้อความและหักเหรียญ
         async function sendMessage() {
             const input = document.getElementById('userInput');
-            const msgDiv = document.getElementById('messages');
-            if(!input.value.trim()) return;
+            const val = input.value.trim();
+            if(!val) return;
 
-            msgDiv.innerHTML += `<div style="text-align:right; margin-bottom:10px;"><b>คุณ:</b> ${input.value}</div>`;
-            const text = input.value;
+            const userRef = db.collection("users").doc(currentUser.uid);
+            const doc = await userRef.get();
+            const currentCoins = doc.data().coins;
+
+            if(currentCoins <= 0) {
+                return alert("เหรียญของคุณหมดแล้ว! กดรับเหรียญฟรีด้านบนนะเจ้าคะ");
+            }
+
+            appendMsg("คุณ: " + val, "user-msg");
             input.value = '';
 
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ prompt: text, username: currentUser })
-            });
-            const data = await response.json();
-            
-            if(data.remainingCoins !== undefined) {
-                document.getElementById('coinCount').innerText = data.remainingCoins;
+            try {
+                // ส่งไปที่ Server Render ของเรา
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ prompt: val })
+                });
+                const data = await response.json();
+                
+                // หัก 1 เหรียญต่อการคุย 1 ครั้ง
+                await userRef.update({ coins: currentCoins - 1 });
+                appendMsg("AI: " + data.reply, "ai-msg");
+            } catch (err) {
+                appendMsg("ระบบขัดข้อง: " + err.message, "ai-msg");
             }
-            msgDiv.innerHTML += `<div style="color:#f1c40f; margin-bottom:10px;"><b>AI:</b> ${data.reply}</div>`;
-            msgDiv.scrollTop = msgDiv.scrollHeight;
+        }
+
+        function appendMsg(text, className) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'msg ' + className;
+            div.innerText = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
         }
     </script>
 </body>
