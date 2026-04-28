@@ -109,15 +109,24 @@
             });
         }
 
-        async function setupUserDatabase() {
-            const userRef = db.collection("users").doc(currentUser.uid);
-            const doc = await userRef.get();
-            if (!doc.exists()) {
-                await userRef.set({ coins: 100, lastCheckIn: "" });
-            }
-            updateCoinDisplay();
+       async function setupUserDatabase() {
+    try {
+        const userRef = db.collection("users").doc(currentUser.uid);
+        const doc = await userRef.get();
+        
+        // แก้ไขจุดนี้: เปลี่ยนจาก doc.exists() เป็น doc.exists (ไม่มีวงเล็บ)
+        if (!doc.exists) { 
+            await userRef.set({ 
+                coins: 100, 
+                lastCheckIn: "" 
+            });
         }
-
+        updateCoinDisplay();
+    } catch (error) {
+        console.error("Error setting up user:", error);
+        alert("เกิดข้อผิดพลาดในการตั้งค่าฐานข้อมูลเจ้าค่ะ");
+    }
+}
         function updateCoinDisplay() {
             db.collection("users").doc(currentUser.uid).onSnapshot((doc) => {
                 if (doc.exists()) {
