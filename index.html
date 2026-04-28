@@ -1,52 +1,53 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <title>KhuiKan AI - Advanced Chat</title>
+    <title>Khuikan-AI | เพื่อนซี้อัจฉริยะ 💬</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --main: #f1c40f; --accent: #e67e22; --bg: #0f0f0f; --card: #1a1a1a; }
-        body { font-family: 'Kanit', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        :root { --main-color: #ffcc00; --accent-color: #ff9900; --bg-dark: #0b0b0b; --card-bg: #161616; }
+        body { font-family: 'Kanit', sans-serif; background: var(--bg-dark); color: #fff; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        /* Login Card */
-        #login-card { background: var(--card); padding: 50px 30px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid #333; width: 350px; transition: 0.5s; }
-        .logo-icon { font-size: 50px; margin-bottom: 10px; }
-        
-        /* App Layout */
-        #app-container { display: none; width: 100%; max-width: 600px; height: 95vh; background: var(--card); flex-direction: column; position: relative; border-radius: 20px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        .header { padding: 20px; background: #222; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main); border-radius: 20px 20px 0 0; }
-        
-        /* Chat Area */
-        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .msg { padding: 12px 18px; border-radius: 20px; max-width: 80%; word-wrap: break-word; font-size: 0.95em; line-height: 1.4; animation: fadeIn 0.3s; }
-        .user-msg { align-self: flex-end; background: var(--main); color: black; border-bottom-right-radius: 2px; font-weight: 500; }
-        .ai-msg { align-self: flex-start; background: #333; border-bottom-left-radius: 2px; border-left: 4px solid var(--main); }
-        
-        /* Input Area */
-        .input-box { padding: 20px; background: #222; display: flex; gap: 10px; border-radius: 0 0 20px 20px; }
-        input { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #444; background: #111; color: white; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--main); }
-        
-        button { background: var(--main); color: black; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        button:hover { transform: scale(1.05); background: #ffdb4d; }
-        .google-btn { background: white; color: #333; width: 100%; margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 15px; border-radius: 15px; font-size: 1em; }
+        /* หน้า Login */
+        #login-card { background: var(--card-bg); padding: 50px 30px; border-radius: 40px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.9); width: 340px; border: 2px solid #222; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .google-btn { background: #fff; color: #333; width: 100%; margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; border-radius: 20px; font-weight: 600; cursor: pointer; border: none; font-size: 1.1em; transition: 0.3s; }
+        .google-btn:hover { background: var(--main-color); transform: scale(1.03); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        /* หน้า Chat */
+        #app-container { display: none; width: 100%; max-width: 550px; height: 92vh; background: var(--card-bg); flex-direction: column; border-radius: 30px; position: relative; border: 1px solid #333; overflow: hidden; }
+        .header { padding: 20px; background: #1f1f1f; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-color); }
+        .status-dot { width: 10px; height: 10px; background: #00ff00; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #00ff00; }
+        
+        #messages { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 18px; background: url('https://www.transparenttextures.com/patterns/dark-matter.png'); }
+        .msg { padding: 14px 20px; border-radius: 22px; max-width: 85%; font-size: 1em; line-height: 1.5; position: relative; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        .user-msg { align-self: flex-end; background: linear-gradient(135deg, var(--main-color), var(--accent-color)); color: #000; border-bottom-right-radius: 4px; font-weight: 500; }
+        .ai-msg { align-self: flex-start; background: #2a2a2a; color: #eee; border-bottom-left-radius: 4px; border-left: 5px solid var(--main-color); }
+        
+        .input-box { padding: 20px; background: #1f1f1f; display: flex; gap: 12px; }
+        input { flex: 1; padding: 15px 20px; border-radius: 15px; border: 1px solid #444; background: #000; color: #fff; outline: none; font-size: 1em; transition: 0.3s; }
+        input:focus { border-color: var(--main-color); box-shadow: 0 0 10px rgba(255, 204, 0, 0.2); }
+        button#send-btn { background: var(--main-color); color: #000; border: none; padding: 0 25px; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button#send-btn:hover { background: #fff; }
+
+        /* Coin Section */
+        .coin-box { background: #000; padding: 5px 12px; border-radius: 12px; border: 1px solid var(--main-color); }
     </style>
 </head>
 <body>
 
     <div id="login-card">
-        <div class="logo-icon">💬</div>
-        <h2 style="color: var(--main); margin: 0;">KhuiKan AI</h2>
-        <p style="color: #888;">เพื่อนคุยอัจฉริยะ สำหรับคุณบูม</p>
+        <div style="font-size: 65px;">🤖</div>
+        <h1 style="color: var(--main-color); margin: 10px 0; letter-spacing: 1px;">Khuikan-AI</h1>
+        <p style="color: #aaa;">"มาคุยกันให้หายเหงาเถอะเจ้าค่ะ"</p>
         <button class="google-btn" onclick="loginWithGoogle()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22"> ล็อกอินด้วย Google
         </button>
@@ -55,20 +56,22 @@
     <div id="app-container">
         <div class="header">
             <div>
-                <span style="color: #888; font-size: 0.8em; display: block;">สวัสดีคุณ</span>
-                <b id="userName" style="color: var(--main);">Guest</b>
+                <span style="font-size: 0.75em; color: #888; display: block;"><span class="status-dot"></span> Online</span>
+                <b id="userName" style="color: var(--main-color); font-size: 1.2em;">...</b>
             </div>
             <div style="text-align: right;">
-                <div style="color: var(--main); font-weight: bold; font-size: 1.2em;">🪙 <span id="coinCount">0</span></div>
-                <button onclick="checkIn()" style="padding: 4px 10px; font-size: 0.7em; margin-top: 5px;">รับเหรียญรายวัน</button>
+                <div class="coin-box">🪙 <span id="coinCount" style="color: var(--main-color);">0</span></div>
+                <button onclick="checkIn()" style="font-size: 0.7em; padding: 3px 8px; margin-top: 6px; background: none; color: #888; border: 1px solid #444;">รับเหรียญฟรี</button>
             </div>
         </div>
+        
         <div id="messages">
-            <div class="msg ai-msg">สวัสดีเจ้าค่ะ มีอะไรให้ช่วยไหมเจ้าคะ? ✨</div>
+            <div class="msg ai-msg">ยินดีต้อนรับสู่ <b>Khuikan-AI</b> เจ้าค่ะ! วันนี้คุณบูมอยากคุยเรื่องอะไรดีเจ้าคะ? ✨</div>
         </div>
+        
         <div class="input-box">
-            <input type="text" id="userInput" placeholder="พิมพ์ข้อความที่นี่..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">ส่ง</button>
+            <input type="text" id="userInput" placeholder="พิมพ์ข้อความคุยกันที่นี่..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button id="send-btn" onclick="sendMessage()">ส่ง</button>
         </div>
     </div>
 
@@ -98,13 +101,10 @@
                 await setupUserDatabase();
                 showApp();
             }).catch(err => {
-                console.error("Error Detail:", err);
                 if (err.code === 'auth/unauthorized-domain') {
-                    alert("🚨 ล็อกอินไม่ได้: ต้องเพิ่ม 'khuikan-ai.onrender.com' ใน Authorized Domains ของ Firebase ก่อนเจ้าค่ะ!");
-                } else if (err.code === 'auth/operation-not-allowed') {
-                    alert("🚨 ล็อกอินไม่ได้: ยังไม่ได้กด 'Save' เพื่อเปิดใช้ Google Sign-in ใน Firebase เจ้าค่ะ!");
+                    alert("⚠️ อย่าลืมเพิ่ม 'khuikan-ai.onrender.com' ใน Firebase Authorized Domains นะเจ้าคะ!");
                 } else {
-                    alert("❌ เกิดข้อผิดพลาด: " + err.message);
+                    alert("❌ ล็อกอินขัดข้อง: " + err.message);
                 }
             });
         }
@@ -130,18 +130,14 @@
             const now = new Date().toDateString();
             const userRef = db.collection("users").doc(currentUser.uid);
             const doc = await userRef.get();
-            if (doc.data().lastCheckIn === now) return alert("วันนี้คุณรับเหรียญไปแล้วนะเจ้าคะ!");
-            
+            if (doc.data().lastCheckIn === now) return alert("วันนี้คุณบูมรับเหรียญไปแล้วนะเจ้าคะ!");
             await userRef.update({ coins: (doc.data().coins || 0) + 100, lastCheckIn: now });
-            alert("ยินดีด้วย! ได้รับเพิ่ม 100 เหรียญเจ้าค่ะ");
+            alert("ยินดีด้วยเจ้าค่ะ! ได้รับ 100 เหรียญแล้ว");
         }
 
         function showApp() {
-            document.getElementById('login-card').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('login-card').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
-            }, 500);
+            document.getElementById('login-card').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
         }
 
         async function sendMessage() {
@@ -151,7 +147,7 @@
 
             const userRef = db.collection("users").doc(currentUser.uid);
             const doc = await userRef.get();
-            if((doc.data().coins || 0) <= 0) return alert("เหรียญหมดแล้วเจ้าค่ะ กรุณากดรับเหรียญฟรีนะเจ้าคะ");
+            if((doc.data().coins || 0) <= 0) return alert("เหรียญหมดแล้วเจ้าค่ะ!");
 
             appendMsg(val, "user-msg");
             input.value = '';
@@ -163,11 +159,10 @@
                     body: JSON.stringify({ prompt: val })
                 });
                 const data = await response.json();
-                
                 await userRef.update({ coins: doc.data().coins - 1 });
                 appendMsg(data.reply, "ai-msg");
             } catch (err) {
-                appendMsg("ขออภัยเจ้าค่ะ ตอนนี้ระบบ AI ขัดข้องเล็กน้อย (อย่าลืมเปิด Server หลังบ้านนะเจ้าคะ)", "ai-msg");
+                appendMsg("ระบบขัดข้องนิดหน่อยเจ้าค่ะ อย่าลืมเช็ค Server หลังบ้านนะเจ้าคะ!", "ai-msg");
             }
         }
 
