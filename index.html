@@ -1,55 +1,78 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <title>KhuiKan - Google Login & AI</title>
+    <title>KhuiKan AI - Advanced Chat</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        :root { --main-color: #f1c40f; --bg-dark: #121212; }
-        body { font-family: 'Kanit', sans-serif; background: var(--bg-dark); color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        #login-card { background: #1e1e1e; padding: 40px; border-radius: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.7); width: 320px; }
-        #app-container { display: none; width: 100%; max-width: 500px; background: #1e1e1e; height: 90vh; border-radius: 20px; flex-direction: column; overflow: hidden; }
-        .header { background: #2d2d2d; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main-color); }
-        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .input-box { padding: 15px; display: flex; gap: 10px; background: #2d2d2d; }
-        input { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #3d3d3d; color: white; outline: none; }
-        button { background: var(--main-color); color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .google-btn { background: white; color: #444; width: 100%; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .coin-tag { color: var(--main-color); font-weight: bold; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
-        .user-msg { align-self: flex-end; background: #f1c40f; color: black; border-bottom-right-radius: 2px; }
-        .ai-msg { align-self: flex-start; background: #2d2d2d; border-bottom-left-radius: 2px; border-left: 3px solid #f1c40f; }
+        :root { --main: #f1c40f; --accent: #e67e22; --bg: #0f0f0f; --card: #1a1a1a; }
+        body { font-family: 'Kanit', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        
+        /* Login Card */
+        #login-card { background: var(--card); padding: 50px 30px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid #333; width: 350px; transition: 0.5s; }
+        .logo-icon { font-size: 50px; margin-bottom: 10px; }
+        
+        /* App Layout */
+        #app-container { display: none; width: 100%; max-width: 600px; height: 95vh; background: var(--card); flex-direction: column; position: relative; border-radius: 20px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .header { padding: 20px; background: #222; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main); border-radius: 20px 20px 0 0; }
+        
+        /* Chat Area */
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .msg { padding: 12px 18px; border-radius: 20px; max-width: 80%; word-wrap: break-word; font-size: 0.95em; line-height: 1.4; animation: fadeIn 0.3s; }
+        .user-msg { align-self: flex-end; background: var(--main); color: black; border-bottom-right-radius: 2px; font-weight: 500; }
+        .ai-msg { align-self: flex-start; background: #333; border-bottom-left-radius: 2px; border-left: 4px solid var(--main); }
+        
+        /* Input Area */
+        .input-box { padding: 20px; background: #222; display: flex; gap: 10px; border-radius: 0 0 20px 20px; }
+        input { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #444; background: #111; color: white; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--main); }
+        
+        button { background: var(--main); color: black; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { transform: scale(1.05); background: #ffdb4d; }
+        .google-btn { background: white; color: #333; width: 100%; margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 15px; border-radius: 15px; font-size: 1em; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="login-card">
-        <h1 style="color: var(--main-color);">KhuiKan AI 💬</h1>
-        <p>ยินดีต้อนรับคุณบูม! ล็อกอินเพื่อสะสมเหรียญกัน</p>
+        <div class="logo-icon">💬</div>
+        <h2 style="color: var(--main); margin: 0;">KhuiKan AI</h2>
+        <p style="color: #888;">เพื่อนคุยอัจฉริยะ สำหรับคุณบูม</p>
         <button class="google-btn" onclick="loginWithGoogle()">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="20"> ล็อกอินด้วย Google
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="22"> ล็อกอินด้วย Google
         </button>
     </div>
 
     <div id="app-container">
         <div class="header">
-            <div><b id="userName">KhuiKan AI</b></div>
-            <div class="coin-tag">🪙 <span id="coinCount">0</span></div>
-            <button onclick="checkIn()" style="padding: 5px 10px; font-size: 0.8em;">รับเหรียญฟรี</button>
+            <div>
+                <span style="color: #888; font-size: 0.8em; display: block;">สวัสดีคุณ</span>
+                <b id="userName" style="color: var(--main);">Guest</b>
+            </div>
+            <div style="text-align: right;">
+                <div style="color: var(--main); font-weight: bold; font-size: 1.2em;">🪙 <span id="coinCount">0</span></div>
+                <button onclick="checkIn()" style="padding: 4px 10px; font-size: 0.7em; margin-top: 5px;">รับเหรียญรายวัน</button>
+            </div>
         </div>
-        <div id="messages"></div>
+        <div id="messages">
+            <div class="msg ai-msg">สวัสดีเจ้าค่ะ มีอะไรให้ช่วยไหมเจ้าคะ? ✨</div>
+        </div>
         <div class="input-box">
-            <input type="text" id="userInput" placeholder="ถามอะไรผมก็ได้เจ้าคะ..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <input type="text" id="userInput" placeholder="พิมพ์ข้อความที่นี่..." onkeypress="if(event.key==='Enter') sendMessage()">
             <button onclick="sendMessage()">ส่ง</button>
         </div>
     </div>
 
     <script>
-        // ใช้รหัส Config ล่าสุดที่คุณส่งมาให้เลยเจ้าคะ!
         const firebaseConfig = {
             apiKey: "AIzaSyBUuxmf6LjRCinleq2-NWTuZwS7J2MnK_k",
             authDomain: "khuikan-ai.firebaseapp.com",
@@ -63,19 +86,26 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-
         let currentUser = null;
 
         function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+
             auth.signInWithPopup(provider).then(async (result) => {
                 currentUser = result.user;
                 document.getElementById('userName').innerText = currentUser.displayName;
                 await setupUserDatabase();
                 showApp();
             }).catch(err => {
-                console.error(err);
-                alert("ล็อกอินไม่ได้: ตรวจสอบว่าเปิด Google Sign-in ใน Firebase หรือยังนะเจ้าคะ?");
+                console.error("Error Detail:", err);
+                if (err.code === 'auth/unauthorized-domain') {
+                    alert("🚨 ล็อกอินไม่ได้: ต้องเพิ่ม 'khuikan-ai.onrender.com' ใน Authorized Domains ของ Firebase ก่อนเจ้าค่ะ!");
+                } else if (err.code === 'auth/operation-not-allowed') {
+                    alert("🚨 ล็อกอินไม่ได้: ยังไม่ได้กด 'Save' เพื่อเปิดใช้ Google Sign-in ใน Firebase เจ้าค่ะ!");
+                } else {
+                    alert("❌ เกิดข้อผิดพลาด: " + err.message);
+                }
             });
         }
 
@@ -100,15 +130,18 @@
             const now = new Date().toDateString();
             const userRef = db.collection("users").doc(currentUser.uid);
             const doc = await userRef.get();
-            if (doc.data().lastCheckIn === now) return alert("วันนี้รับไปแล้วเจ้าคะ!");
+            if (doc.data().lastCheckIn === now) return alert("วันนี้คุณรับเหรียญไปแล้วนะเจ้าคะ!");
             
-            await userRef.update({ coins: doc.data().coins + 100, lastCheckIn: now });
-            alert("ยินดีด้วย! ได้รับ 100 เหรียญ");
+            await userRef.update({ coins: (doc.data().coins || 0) + 100, lastCheckIn: now });
+            alert("ยินดีด้วย! ได้รับเพิ่ม 100 เหรียญเจ้าค่ะ");
         }
 
         function showApp() {
-            document.getElementById('login-card').style.display = 'none';
-            document.getElementById('app-container').style.display = 'flex';
+            document.getElementById('login-card').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('login-card').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+            }, 500);
         }
 
         async function sendMessage() {
@@ -118,7 +151,7 @@
 
             const userRef = db.collection("users").doc(currentUser.uid);
             const doc = await userRef.get();
-            if(doc.data().coins <= 0) return alert("เหรียญหมดแล้วเจ้าคะ!");
+            if((doc.data().coins || 0) <= 0) return alert("เหรียญหมดแล้วเจ้าค่ะ กรุณากดรับเหรียญฟรีนะเจ้าคะ");
 
             appendMsg(val, "user-msg");
             input.value = '';
@@ -134,7 +167,7 @@
                 await userRef.update({ coins: doc.data().coins - 1 });
                 appendMsg(data.reply, "ai-msg");
             } catch (err) {
-                appendMsg("ขออภัยเจ้าคะ ระบบขัดข้องเล็กน้อย", "ai-msg");
+                appendMsg("ขออภัยเจ้าค่ะ ตอนนี้ระบบ AI ขัดข้องเล็กน้อย (อย่าลืมเปิด Server หลังบ้านนะเจ้าคะ)", "ai-msg");
             }
         }
 
