@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KhuiKan - Login & Daily Coins</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: flex; justify-content: center; padding: 20px; }
+        #login-screen { width: 350px; background: #1e1e1e; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        #app-container { display: none; width: 450px; background: #1e1e1e; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .coin-status { background: #f1c40f; color: black; padding: 8px 15px; border-radius: 15px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        #messages { height: 300px; overflow-y: auto; background: #2d2d2d; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
+        input, button { padding: 12px; border-radius: 10px; border: none; margin-top: 10px; font-size: 1em; }
+        input { width: 100%; box-sizing: border-box; background: #333; color: white; }
+        button { background: #f1c40f; color: black; font-weight: bold; cursor: pointer; width: 100%; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .checkin-btn { background: #2ecc71; width: auto; padding: 5px 10px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <h2>KhuiKan AI 💬</h2>
+        <p>กรุณาตั้งชื่อเพื่อเข้าใช้งาน</p>
+        <input type="text" id="usernameInput" placeholder="ใส่ชื่อของคุณที่นี่...">
+        <button onclick="login()">เข้าสู่ระบบ</button>
+    </div>
+
+    <div id="app-container">
+        <div class="coin-status">
+            <span>🪙 <span id="coinCount">0</span> Coins</span>
+            <button class="checkin-btn" onclick="checkIn()">รับเหรียญรายวัน +100</button>
+        </div>
+        <div id="messages"></div>
+        <input type="text" id="userInput" placeholder="พิมพ์ข้อความ... (ใช้ 1 เหรียญ)">
+        <button onclick="sendMessage()" id="sendBtn">ส่งข้อความ</button>
+    </div>
+
+    <script>
+        let currentUser = "";
+
+        async function login() {
+            const user = document.getElementById('usernameInput').value;
+            if(!user) return alert("กรุณาใส่ชื่อนะเจ้าคะ!");
+            currentUser = user;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: user })
+            });
+            const data = await response.json();
+            document.getElementById('coinCount').innerText = data.coins;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+        }
+
+        async function checkIn() {
+            const response = await fetch('/daily-checkin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: currentUser })
+            });
+            const data = await response.json();
+            alert(data.message);
+            if(data.success) {
+                document.getElementById('coinCount').innerText = data.coins;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const msgDiv = document.getElementById('messages');
+            if(!input.value.trim()) return;
+
+            msgDiv.innerHTML += `<div style="text-align:right; margin-bottom:10px;"><b>คุณ:</b> ${input.value}</div>`;
+            const text = input.value;
+            input.value = '';
+
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ prompt: text, username: currentUser })
+            });
+            const data = await response.json();
+            
+            if(data.remainingCoins !== undefined) {
+                document.getElementById('coinCount').innerText = data.remainingCoins;
+            }
+            msgDiv.innerHTML += `<div style="color:#f1c40f; margin-bottom:10px;"><b>AI:</b> ${data.reply}</div>`;
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
